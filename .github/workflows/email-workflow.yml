@@ -1,0 +1,45 @@
+name: Automated Internship Application Emails
+
+on:
+  schedule:
+    # Run daily at 2:51 AM UTC (8:21 AM IST)
+    - cron: '51 2 * * *'
+  workflow_dispatch: # Allows manual triggering for testing
+
+jobs:
+  send-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-auth google-auth-oauthlib google-api-python-client openai python-dotenv pandas pytz
+
+      - name: Authenticate with Google
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" > service_account.json
+          
+      - name: Run email generation and sending script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          CV_PATH: "./assets/cv.pdf"
+        run: python scripts/send_emails.py
+        
+      - name: Update status in repository
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          git add data/email_status.json
+          git commit -m "Update email status [skip ci]" || echo "No changes to commit"
+          git push
