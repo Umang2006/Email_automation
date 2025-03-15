@@ -1,0 +1,16 @@
+# Secrets and credentials
+*.env
+service_account.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+logs/
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
